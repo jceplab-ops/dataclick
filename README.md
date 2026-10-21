@@ -41,6 +41,16 @@ It must be HTTPS (or localhost) for installation and offline use. A subfolder is
 **Pushing an update:** upload the new files and change `behavior-recorder-v1` to `-v2` in `sw.js`.
 Phones pick up the new version the next time they open the app online.
 
+## License
+
+Copyright (C) 2026 David Widman
+
+This program is free software: you can redistribute it and/or modify it under the terms of the
+GNU General Public License as published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version. It is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the `LICENSE` file for the full text.
+
 ## Without any hosting
 
 `index.html` is self-contained and also works if opened directly in a browser
