@@ -1,10 +1,10 @@
 // Behavior Recorder - offline cache
-// Copyright (C) 2026 David Widman
+// Copyright (C) 2026 David Widman and Juniata College
 // Licensed under the GNU General Public License, version 3 or later.
 // See the LICENSE file or <https://www.gnu.org/licenses/>. No warranty.
 //
 // To push an update to students, change the version number below and re-upload the files.
-const CACHE = 'behavior-recorder-v2';
+const CACHE = 'behavior-recorder-v3';
 const SHELL = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {

@@ -43,7 +43,7 @@ Phones pick up the new version the next time they open the app online.
 
 ## License
 
-Copyright (C) 2026 David Widman
+Copyright (C) 2026 David Widman and Juniata College
 
 This program is free software: you can redistribute it and/or modify it under the terms of the
 GNU General Public License as published by the Free Software Foundation, either version 3 of the
