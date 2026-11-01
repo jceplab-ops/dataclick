@@ -3,12 +3,26 @@
 // Licensed under the GNU General Public License, version 3 or later.
 // See the LICENSE file or <https://www.gnu.org/licenses/>. No warranty.
 //
-// To push an update to students, change the version number below and re-upload the files.
-const CACHE = 'behavior-recorder-v3';
+// How it behaves: when the phone is online it always loads the newest files from the
+// server (so updates reach students right away); when offline, or when the network is
+// slower than 5 seconds, it falls back to the copy saved on the phone.
+//
+// To force every phone to refresh its saved copy after an update, change the version
+// number below (v4 to v5, and so on) and re-upload this file.
+const CACHE = 'behavior-recorder-v4';
 const SHELL = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
+const NETWORK_TIMEOUT_MS = 5000;
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  e.waitUntil(
+    caches.open(CACHE).then((c) =>
+      Promise.all(SHELL.map((u) =>
+        fetch(u, { cache: 'reload' })
+          .then((r) => (r && r.ok ? c.put(u, r) : null))
+          .catch(() => null)
+      ))
+    ).then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', (e) => {
@@ -19,24 +33,31 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Serve from cache immediately, refresh the cache in the background.
+async function networkFirst(req) {
+  const cache = await caches.open(CACHE);
+  const net = fetch(req, { cache: 'no-cache' });
+  const timeout = new Promise((resolve) => setTimeout(() => resolve(undefined), NETWORK_TIMEOUT_MS));
+  const res = await Promise.race([net.catch(() => undefined), timeout]);
+
+  if (res && res.ok) {
+    cache.put(req, res.clone()).catch(() => {});
+    return res;
+  }
+
+  let hit = await cache.match(req, { ignoreSearch: true });
+  if (!hit && req.mode === 'navigate') {
+    hit = (await cache.match('index.html')) || (await cache.match('./'));
+  }
+  if (hit) return hit;
+
+  // Nothing saved yet: wait for the network after all.
+  const late = await net.catch(() => undefined);
+  return late || Response.error();
+}
+
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
   if (new URL(req.url).origin !== self.location.origin) return;
-  e.respondWith(
-    caches.match(req, { ignoreSearch: true }).then((hit) => {
-      const net = fetch(req)
-        .then((res) => {
-          if (res && res.ok) {
-            const copy = res.clone();
-            caches.open(CACHE).then((c) => c.put(req, copy));
-          }
-          return res;
-        })
-        .catch(() => hit);
-      e.waitUntil(net.catch(() => {}));
-      return hit || net;
-    })
-  );
+  e.respondWith(networkFirst(req));
 });
