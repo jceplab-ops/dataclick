@@ -96,9 +96,18 @@ input[type=text], input[type=number], select {
   letter-spacing: normal; font-variant: normal; color: var(--ink);
 }
 input:focus-visible, select:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
-.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
 .row2 label { margin-bottom: 0; }
 .hint { color: var(--muted); font-size: 0.9rem; margin: 10px 0 0; }
+
+.check {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
+  font-variant: normal; letter-spacing: normal; color: var(--ink); font-size: 1rem;
+}
+.check input { width: 24px; height: 24px; margin: 0; accent-color: var(--accent); flex: none; }
+.colorrow { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+input[type=color] { width: 64px; height: 44px; padding: 2px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+.swatch { width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--line); background: transparent; transition: background 0.1s; }
 
 button { cursor: pointer; }
 button:disabled { opacity: 0.4; cursor: default; }
@@ -112,7 +121,14 @@ button:disabled { opacity: 0.4; cursor: default; }
 .big { width: 100%; font-size: 1.1rem; padding: 16px; }
 .sm { padding: 8px 12px; font-size: 0.9rem; border-radius: 10px; }
 .chip { background: var(--bg); border-color: var(--line); padding: 8px 14px; font-weight: 500; font-size: 0.95rem; border-radius: 999px; }
+.chip.sel { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
 .presets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+
+/* Show only the setup fields that belong to the chosen assessment type */
+#setup[data-type="frequency"] :is(.t-dur, .t-int) { display: none !important; }
+#setup[data-type="duration"]  :is(.t-freq, .t-int) { display: none !important; }
+#setup[data-type="interval"]  :is(.t-freq, .t-dur, .t-fd) { display: none !important; }
+#setup:not([data-type="frequency"]) .brole { display: none; }
 
 .brow {
   display: grid; grid-template-columns: 14px 1fr auto; gap: 8px 10px; align-items: center;
@@ -127,6 +143,7 @@ button:disabled { opacity: 0.4; cursor: default; }
 #record.screen {
   max-width: none; height: 100vh; height: 100dvh; min-height: 0;
   display: flex; flex-direction: column; gap: 10px; overflow: hidden;
+  transition: background-color 0.15s;
 }
 .topbar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
 .topbar .side { min-width: 0; }
@@ -152,7 +169,7 @@ button:disabled { opacity: 0.4; cursor: default; }
   position: relative; min-height: 0; border: none; border-radius: 22px; color: #fff;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
   box-shadow: 0 3px 0 rgba(0,0,0,0.22), inset 0 0 0 1px rgba(255,255,255,0.10);
-  touch-action: manipulation; user-select: none; -webkit-user-select: none;
+  touch-action: none; user-select: none; -webkit-user-select: none;
   -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
   transition: transform 0.06s, filter 0.06s, opacity 0.2s;
 }
@@ -160,9 +177,14 @@ button:disabled { opacity: 0.4; cursor: default; }
 .padbtn .pc { font-size: clamp(2.2rem, min(14vw, 16vh), 5.5rem); line-height: 1; font-variant-numeric: lining-nums tabular-nums; }
 .padbtn .pr { font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.8; min-height: 1em; }
 .padbtn.hit, .padbtn:active { transform: scale(0.985); filter: brightness(1.18); }
+.padbtn.on {
+  transform: scale(0.985); filter: brightness(1.2);
+  box-shadow: inset 0 0 0 7px rgba(255,255,255,0.9), 0 3px 0 rgba(0,0,0,0.22);
+}
 .pad.idle .padbtn { opacity: 0.42; filter: saturate(0.5); }
 
 .bottombar { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+.bottombar.one { grid-template-columns: 1fr; }
 .bottombar button { padding: 16px; font-size: 1.1rem; }
 
 /* ---------- Results ---------- */
@@ -170,8 +192,8 @@ button:disabled { opacity: 0.4; cursor: default; }
 .totals .trow:last-child { border-bottom: none; }
 .totals .tname { overflow-wrap: anywhere; }
 .totals .tag { color: var(--muted); font-size: 0.8rem; font-variant: small-caps; letter-spacing: 0.06em; margin-left: 6px; }
-.totals .tval { font-weight: 600; white-space: nowrap; }
-.totals .trate { color: var(--muted); font-weight: 400; font-size: 0.85rem; margin-left: 6px; }
+.totals .tval { font-weight: 600; text-align: right; }
+.totals .trate { display: block; color: var(--muted); font-weight: 400; font-size: 0.85rem; }
 .file { padding: 12px 0; border-bottom: 1px dotted var(--line); }
 .file:first-of-type { padding-top: 0; }
 .file:last-of-type { border-bottom: none; padding-bottom: 0; }
@@ -200,11 +222,21 @@ th:first-child, td:first-child { text-align: left; }
 <noscript><p style="padding:20px">This app needs JavaScript turned on.</p></noscript>
 
 <!-- ============ Setup ============ -->
-<section id="setup" class="screen" hidden>
+<section id="setup" class="screen" data-type="frequency" hidden>
   <header class="masthead">
     <h1>Behavior Recorder</h1>
-    <p class="sub">Press a button each time the behavior occurs. Export time-binned counts as CSV.</p>
+    <p class="sub">Record behavior by frequency, duration, or interval. Export time-binned CSV.</p>
   </header>
+
+  <div class="card">
+    <h2>Assessment type</h2>
+    <div class="presets" id="typeChips" role="group" aria-label="Assessment type">
+      <button type="button" class="chip" data-type="frequency">Frequency</button>
+      <button type="button" class="chip" data-type="duration">Duration</button>
+      <button type="button" class="chip" data-type="interval">Interval</button>
+    </div>
+    <p class="hint" id="typeHint"></p>
+  </div>
 
   <div class="card">
     <label>Observer
@@ -214,25 +246,52 @@ th:first-child, td:first-child { text-align: left; }
       <input id="label" type="text" placeholder="e.g., Lab 1, Subject A" autocomplete="off" maxlength="60">
     </label>
     <div class="row2">
-      <label>Bin size (seconds)
+      <label class="t-fd">Bin size (seconds)
         <input id="binSize" type="number" inputmode="numeric" min="1" step="1" value="60">
+      </label>
+      <label class="t-int">Interval length (seconds)
+        <input id="intervalSec" type="number" inputmode="numeric" min="2" step="1" value="10">
       </label>
       <label>Session length (minutes)
         <input id="duration" type="number" inputmode="decimal" min="0" step="any" placeholder="Open-ended">
       </label>
     </div>
-    <p class="hint">Leave session length blank to stop manually. If you set it, recording ends automatically.</p>
+    <label class="t-int">Record time after each interval (seconds)
+      <input id="recordSec" type="number" inputmode="numeric" min="1" step="1" value="5">
+    </label>
+    <label class="t-dur">Button press style
+      <select id="press">
+        <option value="hold">Hold while behavior occurs, release when it stops</option>
+        <option value="toggle">Tap to start, tap again to stop</option>
+      </select>
+    </label>
+    <p class="hint t-fd">Leave session length blank to stop manually. If you set it, recording ends automatically.</p>
+    <p class="hint t-int">Each cycle is the interval followed by the record time, so a 10-second interval with 5 seconds to record repeats every 15 seconds. Leave session length blank to stop manually; otherwise only whole cycles are recorded.</p>
+  </div>
+
+  <div class="card t-int">
+    <h2>Signal at the end of each interval</h2>
+    <label class="check"><input type="checkbox" id="sigSound"> Sound (a short beep)</label>
+    <label class="check"><input type="checkbox" id="sigVibe"> Vibration</label>
+    <label class="check"><input type="checkbox" id="sigColor"> Screen color change during the record time</label>
+    <label>Screen color
+      <span class="colorrow"><input type="color" id="signalColor" value="#e0a000"><span id="testSwatch" class="swatch"></span></span>
+    </label>
+    <p style="margin:12px 0 0"><button type="button" id="testSignal" class="ghost sm">Test signal</button></p>
+    <p class="hint">iPhone Safari cannot vibrate, and the iPhone silent switch mutes the beep, so use screen color there. On Android, vibration and sound both work. Keep the screen on and the app in front while recording.</p>
   </div>
 
   <div class="card">
     <h2>Buttons</h2>
     <div class="presets">
       <button type="button" class="chip" data-preset="one">One button</button>
-      <button type="button" class="chip" data-preset="rr">Response + Reinforcement</button>
+      <button type="button" class="chip t-freq" data-preset="rr">Response + Reinforcement</button>
     </div>
     <div id="buttonList"></div>
     <button type="button" id="addBtn" class="chip">+ Add button</button>
-    <p class="hint">Up to 6 buttons. Marking buttons as Response and Reinforcement adds a column to the event log showing how long after a response each reinforcer occurred.</p>
+    <p class="hint t-freq">Up to 6 buttons. Marking buttons as Response and Reinforcement adds a column to the event log showing how long after a response each reinforcer occurred.</p>
+    <p class="hint t-dur">Up to 6 behaviors. Each gets its own button and its own timing, and they can run at the same time.</p>
+    <p class="hint t-int">Up to 6 behaviors. After each interval you mark every behavior that occurred during it.</p>
   </div>
 
   <button type="button" id="begin" class="primary big">Open recorder</button>
@@ -256,7 +315,7 @@ th:first-child, td:first-child { text-align: left; }
     <div id="lastEv" class="right"></div>
   </div>
   <div id="pad" class="pad idle" data-n="1"></div>
-  <div class="bottombar">
+  <div id="bottombar" class="bottombar">
     <button type="button" id="undo" class="ghost">Undo last</button>
     <button type="button" id="startStop" class="primary">Start</button>
   </div>
@@ -281,7 +340,7 @@ th:first-child, td:first-child { text-align: left; }
   </div>
 
   <div class="card">
-    <h2>Time bins</h2>
+    <h2 id="tableTitle">Time bins</h2>
     <div class="tablewrap"><table id="binTable"></table></div>
   </div>
 
@@ -301,6 +360,12 @@ th:first-child, td:first-child { text-align: left; }
 'use strict';
 
 const MAX_BUTTONS = 6;
+const TYPES = ['frequency', 'duration', 'interval'];
+const TYPE_HINT = {
+  frequency: 'Tap a button each time the behavior occurs. Counts are binned over time.',
+  duration: 'Hold a button down while the behavior is happening and release it when the behavior stops. Use a different finger for each behavior if several occur together.',
+  interval: 'Watch for the whole interval. When the signal comes, tap the button for each behavior that occurred during that interval, then watch the next one.'
+};
 const ROLE_LABEL = { behavior: 'Behavior', response: 'Response', reinforcement: 'Reinforcement' };
 const BEHAVIOR_COLORS = ['#3b5b83', '#7b4b7a', '#8a4a3a', '#4d6a6e'];
 const RESERVED_COLUMNS = ['session', 'observer', 'bin', 'bin_start_s', 'bin_end_s'];
@@ -320,6 +385,7 @@ function csvRow(cells) { return cells.map(csvCell).join(','); }
 
 // milliseconds -> seconds string with up to 3 decimals, no trailing zeros
 function secStr(ms) { return String(Number((ms / 1000).toFixed(3))); }
+function pctStr(x) { return String(Number(x.toFixed(2))); }
 
 function isRole(x) { return Object.prototype.hasOwnProperty.call(ROLE_LABEL, x); }
 
@@ -346,6 +412,11 @@ function fmtClock(ms) {
   const p = n => String(n).padStart(2, '0');
   return h > 0 ? h + ':' + p(m) + ':' + p(s) : p(m) + ':' + p(s);
 }
+// Duration display: tenths of a second under a minute, mm:ss after that
+function fmtDur(ms) {
+  const s = Math.max(0, ms) / 1000;
+  return s < 60 ? s.toFixed(1) + 's' : fmtClock(ms);
+}
 
 // Bins cover [0, endMs). An event exactly on a boundary belongs to the later bin.
 // The last bin may be partial; its end is capped at endMs.
@@ -367,6 +438,8 @@ function computeBins(events, nButtons, binSec, endMs) {
   }
   return bins;
 }
+
+/* ---------- Frequency CSVs ---------- */
 
 function binnedCsv(s) {
   const labels = s.buttons.map(b => b.label);
@@ -398,6 +471,114 @@ function eventsCsv(s) {
   return rows.join('\r\n') + '\r\n';
 }
 
+/* ---------- Duration ---------- */
+
+// Episodes are {b, s, e} in ms from session start; e is null while still open.
+// Returns copies closed at endMs and clipped to [0, endMs].
+function closeEpisodes(episodes, endMs) {
+  return episodes.map(x => {
+    const s = Math.max(0, Math.min(x.s, endMs));
+    const e = x.e == null ? endMs : Math.min(Math.max(x.e, s), endMs);
+    return { b: x.b, s, e };
+  });
+}
+
+function computeDurationBins(episodes, nButtons, binSec, endMs) {
+  const binMs = binSec * 1000;
+  const n = Math.max(1, Math.ceil(endMs / binMs));
+  const bins = [];
+  for (let i = 0; i < n; i++) {
+    bins.push({
+      index: i + 1, startMs: i * binMs, endMs: Math.min((i + 1) * binMs, endMs),
+      durMs: new Array(nButtons).fill(0), episodes: new Array(nButtons).fill(0)
+    });
+  }
+  closeEpisodes(episodes, endMs).forEach(ep => {
+    const first = Math.min(n - 1, Math.floor(ep.s / binMs));
+    const last = Math.min(n - 1, Math.floor(Math.max(ep.s, ep.e - 1) / binMs));
+    bins[first].episodes[ep.b]++;
+    for (let i = first; i <= last; i++) {
+      bins[i].durMs[ep.b] += Math.max(0, Math.min(ep.e, bins[i].endMs) - Math.max(ep.s, bins[i].startMs));
+    }
+  });
+  return bins;
+}
+
+function durationBinnedCsv(s) {
+  const labels = s.buttons.map(b => b.label);
+  const head = RESERVED_COLUMNS.slice();
+  labels.forEach(l => head.push(l + '_duration_s', l + '_pct', l + '_episodes'));
+  const rows = [csvRow(head)];
+  computeDurationBins(s.episodes, labels.length, s.binSec, s.endMs).forEach(b => {
+    const len = b.endMs - b.startMs;
+    const cells = [s.label, s.observer, b.index, secStr(b.startMs), secStr(b.endMs)];
+    labels.forEach((_, i) => {
+      cells.push(secStr(b.durMs[i]), len > 0 ? pctStr(b.durMs[i] / len * 100) : 0, b.episodes[i]);
+    });
+    rows.push(csvRow(cells));
+  });
+  return rows.join('\r\n') + '\r\n';
+}
+
+function durationEpisodesCsv(s) {
+  const binMs = s.binSec * 1000;
+  const n = Math.max(1, Math.ceil(s.endMs / binMs));
+  const eps = closeEpisodes(s.episodes, s.endMs).sort((a, b) => a.s - b.s || a.b - b.b);
+  const rows = [csvRow(['session', 'observer', 'episode', 'button', 'start_s', 'end_s', 'duration_s', 'bin', 'start_timestamp_utc'])];
+  eps.forEach((x, i) => {
+    rows.push(csvRow([
+      s.label, s.observer, i + 1, s.buttons[x.b].label, secStr(x.s), secStr(x.e), secStr(x.e - x.s),
+      Math.min(n - 1, Math.floor(x.s / binMs)) + 1,
+      new Date(s.startEpoch + x.s).toISOString()
+    ]));
+  });
+  return rows.join('\r\n') + '\r\n';
+}
+
+/* ---------- Interval ---------- */
+
+// One cycle = observe for intervalSec, then recordSec to mark what happened.
+function cycleMs(s) { return (s.intervalSec + s.recordSec) * 1000; }
+
+// Only intervals whose observation period finished are scored.
+function completeIntervals(s) {
+  const N = s.intervalSec * 1000;
+  if (s.endMs < N) return 0;
+  return Math.floor((s.endMs - N) / cycleMs(s)) + 1;
+}
+
+function intervalRows(s) {
+  const n = completeIntervals(s), N = s.intervalSec * 1000, C = cycleMs(s);
+  const rows = [];
+  for (let k = 0; k < n; k++) {
+    const marks = (s.marks && s.marks[k]) || [];
+    rows.push({
+      index: k + 1, startMs: k * C, endMs: k * C + N,
+      values: s.buttons.map((_, b) => (marks.indexOf(b) >= 0 ? 1 : 0))
+    });
+  }
+  return rows;
+}
+
+function intervalBinnedCsv(s) {
+  const labels = s.buttons.map(b => b.label);
+  const rows = [csvRow(RESERVED_COLUMNS.concat(labels))];
+  intervalRows(s).forEach(r => rows.push(csvRow(
+    [s.label, s.observer, r.index, secStr(r.startMs), secStr(r.endMs)].concat(r.values)
+  )));
+  return rows.join('\r\n') + '\r\n';
+}
+
+function intervalSummaryCsv(s) {
+  const rs = intervalRows(s), n = rs.length;
+  const rows = [csvRow(['session', 'observer', 'button', 'intervals_observed', 'intervals_with_behavior', 'percent_intervals'])];
+  s.buttons.forEach((b, i) => {
+    const yes = rs.reduce((a, r) => a + r.values[i], 0);
+    rows.push(csvRow([s.label, s.observer, b.label, n, yes, n > 0 ? pctStr(yes / n * 100) : '']));
+  });
+  return rows.join('\r\n') + '\r\n';
+}
+
 function fileBase(s) {
   const d = new Date(s.startEpoch || Date.now());
   const p = n => String(n).padStart(2, '0');
@@ -409,7 +590,19 @@ function fileBase(s) {
   return parts.join('_') || 'session';
 }
 
-window.BehaviorRecorderCore = { csvCell, dedupeLabels, computeBins, binnedCsv, eventsCsv, fmtClock, fileBase, secStr };
+function inkFor(hex) {
+  const m = /^#([0-9a-f]{6})$/i.exec(hex || '');
+  if (!m) return '#1a1a1a';
+  const n = parseInt(m[1], 16);
+  const lum = (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+  return lum > 0.6 ? '#1a1a1a' : '#ffffff';
+}
+
+window.BehaviorRecorderCore = {
+  csvCell, dedupeLabels, computeBins, binnedCsv, eventsCsv, fmtClock, fmtDur, fileBase, secStr,
+  closeEpisodes, computeDurationBins, durationBinnedCsv, durationEpisodesCsv,
+  completeIntervals, intervalRows, intervalBinnedCsv, intervalSummaryCsv, inkFor
+};
 
 /* =====================================================================
    App state + storage
@@ -417,6 +610,8 @@ window.BehaviorRecorderCore = { csvCell, dedupeLabels, computeBins, binnedCsv, e
 
 const $ = (sel) => document.querySelector(sel);
 let cfg, session = null, timer = null, wakeLock = null, toastTimer = null;
+let audioCtx = null, phaseKey = -1;
+const holding = new Map();   // pointerId -> button index (duration, hold mode)
 
 function lsGet(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (_) { return null; } }
 function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (_) {} }
@@ -425,7 +620,12 @@ function saveCfg() { lsSet(CFG_KEY, cfg); }
 function saveSession() { if (session) lsSet(SES_KEY, session); }
 
 function defaultCfg() {
-  return { observer: '', label: '', binSec: 60, durationMin: '', buttons: [{ label: 'Behavior', role: 'behavior' }] };
+  return {
+    type: 'frequency', observer: '', label: '', binSec: 60, durationMin: '',
+    press: 'hold', intervalSec: 10, recordSec: 5,
+    signals: { sound: true, vibrate: true, color: true }, signalColor: '#e0a000',
+    buttons: [{ label: 'Behavior', role: 'behavior' }]
+  };
 }
 function loadCfg() {
   const c = lsGet(CFG_KEY), d = defaultCfg();
@@ -437,18 +637,32 @@ function loadCfg() {
       }))
     : d.buttons;
   if (!buttons.length) buttons = d.buttons;
+  const sg = c.signals && typeof c.signals === 'object' ? c.signals : {};
   return {
+    type: TYPES.indexOf(c.type) >= 0 ? c.type : 'frequency',
     observer: String(c.observer || ''),
     label: String(c.label || ''),
     binSec: Number(c.binSec) > 0 ? Number(c.binSec) : 60,
     durationMin: Number(c.durationMin) > 0 ? Number(c.durationMin) : '',
+    press: c.press === 'toggle' ? 'toggle' : 'hold',
+    intervalSec: Number(c.intervalSec) >= 2 ? Number(c.intervalSec) : 10,
+    recordSec: Number(c.recordSec) >= 1 ? Number(c.recordSec) : 5,
+    signals: {
+      sound: sg.sound !== false, vibrate: sg.vibrate !== false, color: sg.color !== false
+    },
+    signalColor: /^#[0-9a-f]{6}$/i.test(c.signalColor || '') ? c.signalColor : d.signalColor,
     buttons
   };
 }
 
 function isValidSession(s) {
-  return s && typeof s === 'object' &&
-    Array.isArray(s.buttons) && s.buttons.length >= 1 && s.buttons.length <= MAX_BUTTONS &&
+  if (!(s && typeof s === 'object')) return false;
+  if (!s.type) s.type = 'frequency';            // sessions saved by the first version
+  if (TYPES.indexOf(s.type) < 0) return false;
+  if (!Array.isArray(s.episodes)) s.episodes = [];
+  if (!s.marks || typeof s.marks !== 'object') s.marks = {};
+  if (s.type === 'interval' && !(s.intervalSec > 0 && s.recordSec >= 0)) return false;
+  return Array.isArray(s.buttons) && s.buttons.length >= 1 && s.buttons.length <= MAX_BUTTONS &&
     s.buttons.every(b => b && typeof b.label === 'string' && isRole(b.role)) &&
     Array.isArray(s.events) && typeof s.binSec === 'number' && s.binSec > 0 &&
     ['ready', 'running', 'finished'].indexOf(s.status) !== -1 &&
@@ -463,6 +677,7 @@ function isValidSession(s) {
 function showScreen(name) {
   ['setup', 'record', 'results'].forEach(n => { $('#' + n).hidden = (n !== name); });
   document.body.classList.toggle('recording', name === 'record');
+  if (name !== 'record') setSignalScreen(false);
   try { window.scrollTo(0, 0); } catch (_) {}
 }
 function toast(msg) {
@@ -491,6 +706,55 @@ function counts() {
   return c;
 }
 
+// Audio must be unlocked by a tap, so this runs from button presses.
+function ensureAudio() {
+  try {
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) audioCtx = new AC();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  } catch (_) {}
+}
+function beep() {
+  if (!audioCtx) return;
+  try {
+    const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = 'sine'; o.frequency.value = 880;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.5, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(t); o.stop(t + 0.45);
+  } catch (_) {}
+}
+function setSignalScreen(on) {
+  const el = $('#record');
+  if (on && session && session.signals && session.signals.color) {
+    const ink = inkFor(session.signalColor);
+    el.style.background = session.signalColor; el.style.color = ink;
+    el.style.setProperty('--muted', ink);
+  } else {
+    el.style.background = ''; el.style.color = ''; el.style.removeProperty('--muted');
+  }
+}
+
+// Session length in ms, or null if open-ended. Interval sessions stop on a whole cycle.
+function capMs(s) {
+  if (!s.durationMin) return null;
+  const d = Math.round(s.durationMin * 60000);
+  if (s.type === 'interval') {
+    const C = cycleMs(s);
+    return Math.max(1, Math.floor(d / C)) * C;
+  }
+  return d;
+}
+function phaseAt(s, el) {
+  const N = s.intervalSec * 1000, C = cycleMs(s);
+  const k = Math.floor(el / C), w = el - k * C;
+  return w < N ? { k, phase: 'observe', left: N - w } : { k, phase: 'record', left: C - w };
+}
+
 /* =====================================================================
    Setup screen
    ===================================================================== */
@@ -505,7 +769,7 @@ function renderButtonList() {
 
     const dot = document.createElement('span');
     dot.className = 'dot';
-    dot.style.background = colorFor(b.role, i);
+    dot.style.background = colorFor(cfg.type === 'frequency' ? b.role : 'behavior', i);
 
     const input = document.createElement('input');
     input.type = 'text'; input.className = 'blabel'; input.value = b.label;
@@ -533,21 +797,57 @@ function renderButtonList() {
 }
 
 function renderSetup() {
+  $('#setup').dataset.type = cfg.type;
+  document.querySelectorAll('#typeChips .chip').forEach(c => {
+    const on = c.dataset.type === cfg.type;
+    c.classList.toggle('sel', on);
+    c.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  $('#typeHint').textContent = TYPE_HINT[cfg.type];
   $('#observer').value = cfg.observer;
   $('#label').value = cfg.label;
   $('#binSize').value = cfg.binSec;
+  $('#intervalSec').value = cfg.intervalSec;
+  $('#recordSec').value = cfg.recordSec;
   $('#duration').value = cfg.durationMin === '' ? '' : cfg.durationMin;
+  $('#press').value = cfg.press;
+  $('#sigSound').checked = !!cfg.signals.sound;
+  $('#sigVibe').checked = !!cfg.signals.vibrate;
+  $('#sigColor').checked = !!cfg.signals.color;
+  $('#signalColor').value = cfg.signalColor;
   renderButtonList();
 }
 
+// Copy whatever is in the fields into cfg without correcting it (used while typing).
+function syncCfg() {
+  cfg.observer = $('#observer').value;
+  cfg.label = $('#label').value;
+  const bs = Number($('#binSize').value); if (bs >= 1) cfg.binSec = bs;
+  const iv = Number($('#intervalSec').value); if (iv >= 1) cfg.intervalSec = iv;
+  const rs = Number($('#recordSec').value); if (rs >= 1) cfg.recordSec = rs;
+  const d = parseFloat($('#duration').value); cfg.durationMin = d > 0 ? d : '';
+  cfg.press = $('#press').value === 'toggle' ? 'toggle' : 'hold';
+  cfg.signals = { sound: $('#sigSound').checked, vibrate: $('#sigVibe').checked, color: $('#sigColor').checked };
+  cfg.signalColor = $('#signalColor').value;
+  saveCfg();
+}
+
+// Correct the fields when the session starts.
 function readSetupFields() {
-  cfg.observer = $('#observer').value.trim();
-  cfg.label = $('#label').value.trim();
+  syncCfg();
+  cfg.observer = cfg.observer.trim();
+  cfg.label = cfg.label.trim();
   const bs = Math.round(Number($('#binSize').value));
   cfg.binSec = bs >= 1 ? Math.min(bs, 86400) : 60;
+  const iv = Math.round(Number($('#intervalSec').value));
+  cfg.intervalSec = iv >= 2 ? Math.min(iv, 3600) : 10;
+  const rs = Math.round(Number($('#recordSec').value));
+  cfg.recordSec = rs >= 1 ? Math.min(rs, 600) : 5;
   const d = parseFloat($('#duration').value);
   cfg.durationMin = d > 0 ? d : '';
   $('#binSize').value = cfg.binSec;
+  $('#intervalSec').value = cfg.intervalSec;
+  $('#recordSec').value = cfg.recordSec;
   $('#duration').value = cfg.durationMin;
   saveCfg();
 }
@@ -557,12 +857,8 @@ $('#setup').addEventListener('input', (e) => {
   if (t.classList.contains('blabel')) {
     cfg.buttons[+t.closest('.brow').dataset.i].label = t.value;
     saveCfg();
-  } else if (t.id === 'observer' || t.id === 'label' || t.id === 'binSize' || t.id === 'duration') {
-    cfg.observer = $('#observer').value;
-    cfg.label = $('#label').value;
-    const bs = Number($('#binSize').value); if (bs >= 1) cfg.binSec = bs;
-    const d = parseFloat($('#duration').value); cfg.durationMin = d > 0 ? d : '';
-    saveCfg();
+  } else if (!t.classList.contains('brole')) {
+    syncCfg();
   }
 });
 $('#setup').addEventListener('change', (e) => {
@@ -572,6 +868,8 @@ $('#setup').addEventListener('change', (e) => {
     cfg.buttons[i].role = t.value;
     row.querySelector('.dot').style.background = colorFor(t.value, i);
     saveCfg();
+  } else if (!t.classList.contains('blabel')) {
+    syncCfg();
   }
 });
 $('#setup').addEventListener('click', (e) => {
@@ -581,6 +879,10 @@ $('#setup').addEventListener('click', (e) => {
       cfg.buttons.splice(+t.closest('.brow').dataset.i, 1);
       saveCfg(); renderButtonList();
     }
+  } else if (t.classList.contains('chip') && t.dataset.type && TYPES.indexOf(t.dataset.type) >= 0) {
+    syncCfg();
+    cfg.type = t.dataset.type;
+    saveCfg(); renderSetup();
   } else if (t.dataset && t.dataset.preset) {
     cfg.buttons = t.dataset.preset === 'rr'
       ? [{ label: 'Response', role: 'response' }, { label: 'Reinforcement', role: 'reinforcement' }]
@@ -594,21 +896,44 @@ $('#addBtn').addEventListener('click', () => {
   saveCfg(); renderButtonList();
 });
 
+$('#testSignal').addEventListener('click', () => {
+  syncCfg();
+  const sg = cfg.signals;
+  if (!sg.sound && !sg.vibrate && !sg.color) { toast('Choose at least one signal'); return; }
+  ensureAudio();
+  if (sg.sound) beep();
+  if (sg.vibrate) vibrate([300, 120, 300]);
+  const sw = $('#testSwatch');
+  if (sg.color) { sw.style.background = cfg.signalColor; setTimeout(() => { sw.style.background = ''; }, 1200); }
+  toast('Signal sent');
+});
+
 $('#begin').addEventListener('click', () => {
   readSetupFields();
+  if (cfg.type === 'interval' && !cfg.signals.sound && !cfg.signals.vibrate && !cfg.signals.color) {
+    toast('Choose at least one signal for the interval'); return;
+  }
   const labels = dedupeLabels(cfg.buttons.map(b => b.label), RESERVED_COLUMNS);
   session = {
-    v: 1,
+    v: 2,
     id: Date.now().toString(36),
+    type: cfg.type,
     observer: cfg.observer,
     label: cfg.label,
-    binSec: cfg.binSec,
+    binSec: cfg.type === 'interval' ? cfg.intervalSec : cfg.binSec,
+    intervalSec: cfg.intervalSec,
+    recordSec: cfg.recordSec,
+    press: cfg.press,
+    signals: { sound: cfg.signals.sound, vibrate: cfg.signals.vibrate, color: cfg.signals.color },
+    signalColor: cfg.signalColor,
     durationMin: cfg.durationMin === '' ? null : Number(cfg.durationMin),
-    buttons: cfg.buttons.map((b, i) => ({ label: labels[i], role: b.role })),
+    buttons: cfg.buttons.map((b, i) => ({ label: labels[i], role: cfg.type === 'frequency' ? b.role : 'behavior' })),
     status: 'ready',
     startEpoch: null,
     endMs: null,
-    events: []
+    events: [],
+    episodes: [],
+    marks: {}
   };
   saveSession();
   showRecord();
@@ -633,17 +958,63 @@ function buildPad() {
     el.append(l, c, r);
     pad.appendChild(el);
   });
-  updateCounts();
+  updatePad();
 }
-function updateCounts() {
-  const c = counts(), kids = $('#pad').children;
-  for (let i = 0; i < kids.length; i++) kids[i].querySelector('.pc').textContent = c[i];
+
+function openEp(b) {
+  for (let j = session.episodes.length - 1; j >= 0; j--) {
+    const x = session.episodes[j];
+    if (x.b === b && x.e == null) return x;
+  }
+  return null;
 }
+function durTotals(now) {
+  const tot = new Array(session.buttons.length).fill(0);
+  session.episodes.forEach(x => { tot[x.b] += (x.e == null ? now : x.e) - x.s; });
+  return tot;
+}
+function currentInterval() {
+  if (session.status !== 'running') return null;
+  return phaseAt(session, Date.now() - session.startEpoch);
+}
+
+function updatePad() {
+  if (!session) return;
+  const kids = $('#pad').children;
+  if (session.type === 'frequency') {
+    const c = counts();
+    for (let i = 0; i < kids.length; i++) kids[i].querySelector('.pc').textContent = c[i];
+  } else if (session.type === 'duration') {
+    const now = session.status === 'running' ? Date.now() - session.startEpoch : 0;
+    const tot = durTotals(now);
+    for (let i = 0; i < kids.length; i++) {
+      const on = !!openEp(i);
+      kids[i].classList.toggle('on', on);
+      kids[i].querySelector('.pc').textContent = fmtDur(tot[i]);
+      const n = session.episodes.filter(x => x.b === i).length;
+      kids[i].querySelector('.pr').textContent = on ? 'Recording' : (n + (n === 1 ? ' episode' : ' episodes'));
+    }
+  } else {
+    const p = currentInterval();
+    const rec = !!p && p.phase === 'record';
+    const m = rec ? (session.marks[p.k] || []) : [];
+    for (let i = 0; i < kids.length; i++) {
+      const on = m.indexOf(i) >= 0;
+      kids[i].classList.toggle('on', on);
+      kids[i].querySelector('.pc').textContent = rec ? (on ? 'YES' : 'no') : '–';
+      let yes = 0;
+      Object.keys(session.marks).forEach(k => { if (session.marks[k].indexOf(i) >= 0) yes++; });
+      kids[i].querySelector('.pr').textContent = rec ? 'Tap if it occurred' : (yes + ' marked');
+    }
+  }
+}
+
 function binInfoText(elapsed) {
   const binMs = session.binSec * 1000;
   const cur = Math.floor(elapsed / binMs) + 1;
-  if (session.durationMin) {
-    const total = Math.max(1, Math.ceil(session.durationMin * 60000 / binMs));
+  const cap = capMs(session);
+  if (cap) {
+    const total = Math.max(1, Math.ceil(cap / binMs));
     return 'Bin ' + Math.min(cur, total) + ' of ' + total;
   }
   return 'Bin ' + cur;
@@ -652,41 +1023,91 @@ function renderClock() {
   if (!session || session.status !== 'running') return;
   const el = Date.now() - session.startEpoch;
   $('#clock').textContent = fmtClock(el);
-  $('#binInfo').textContent = binInfoText(el);
+  if (session.type === 'interval') {
+    const p = phaseAt(session, el), cap = capMs(session);
+    const total = cap ? ' of ' + (cap / cycleMs(session)) : '';
+    $('#binInfo').textContent = 'Interval ' + (p.k + 1) + total + ' · ' +
+      (p.phase === 'observe' ? 'observe ' : 'RECORD NOW ') + Math.ceil(p.left / 1000) + 's';
+  } else {
+    $('#binInfo').textContent = binInfoText(el);
+  }
 }
+function whoText() { return [session.label, session.observer].filter(Boolean).join(' · '); }
 function lastEventText() {
+  if (session.type === 'duration') {
+    const done = session.episodes.filter(x => x.e != null);
+    const x = done[done.length - 1];
+    return x ? 'Last: ' + session.buttons[x.b].label + ' ' + fmtDur(x.e - x.s) : 'No episodes yet';
+  }
+  if (session.type === 'interval') return whoText();
   const e = session.events[session.events.length - 1];
   return e ? 'Last: ' + session.buttons[e.b].label + ' at ' + fmtClock(e.t) : 'No events yet';
+}
+function readyHint() {
+  if (session.type === 'duration') return 'Press Start, then hold a button while the behavior occurs';
+  if (session.type === 'interval') return 'Press Start. A signal marks the end of each interval';
+  return 'Press Start when the observation begins';
+}
+function undoAvailable() {
+  if (!session || session.status !== 'running') return false;
+  if (session.type === 'duration') return session.episodes.length > 0;
+  if (session.type === 'frequency') return session.events.length > 0;
+  return false;
 }
 function updateRecordUI() {
   const ready = session.status === 'ready', running = session.status === 'running';
   const ss = $('#startStop');
   ss.textContent = running ? 'Stop' : 'Start';
   ss.className = running ? 'danger' : 'primary';
-  $('#pad').classList.toggle('idle', !running);
+  const interval = session.type === 'interval';
+  $('#undo').hidden = interval;
+  $('#bottombar').classList.toggle('one', interval);
+  const observing = interval && running && currentInterval().phase === 'observe';
+  $('#pad').classList.toggle('idle', !running || observing);
   $('#backBtn').style.visibility = ready ? 'visible' : 'hidden';
-  $('#undo').disabled = !running || session.events.length === 0;
+  $('#undo').disabled = !undoAvailable();
   if (ready) {
     $('#clock').textContent = '00:00';
-    $('#binInfo').textContent = 'Press Start when the observation begins';
-    $('#lastEv').textContent = [session.label, session.observer].filter(Boolean).join(' · ');
+    $('#binInfo').textContent = readyHint();
+    $('#lastEv').textContent = whoText();
   } else if (running) {
     $('#lastEv').textContent = lastEventText();
     renderClock();
   }
+  updatePad();
 }
 function startTicking() {
   clearInterval(timer);
+  phaseKey = -1;
   timer = setInterval(tick, 100);
   tick();
 }
+function fireSignal() {
+  const sg = session.signals;
+  if (sg.sound) beep();
+  if (sg.vibrate) vibrate([300, 120, 300]);
+}
+function intervalTick(el) {
+  const p = phaseAt(session, el);
+  const key = p.k * 2 + (p.phase === 'record' ? 1 : 0);
+  if (key !== phaseKey) {
+    const first = phaseKey === -1;
+    phaseKey = key;
+    const rec = p.phase === 'record';
+    $('#pad').classList.toggle('idle', !rec);
+    setSignalScreen(rec);
+    if (rec && !first) fireSignal();
+    updatePad();
+  } else if (p.phase === 'record') {
+    updatePad();
+  }
+}
 function tick() {
   if (!session || session.status !== 'running') return;
-  const el = Date.now() - session.startEpoch;
-  if (session.durationMin && el >= session.durationMin * 60000) {
-    finish(session.startEpoch + session.durationMin * 60000, true);
-    return;
-  }
+  const el = Date.now() - session.startEpoch, cap = capMs(session);
+  if (cap != null && el >= cap) { finish(session.startEpoch + cap, true); return; }
+  if (session.type === 'interval') intervalTick(el);
+  else if (session.type === 'duration') updatePad();
   renderClock();
 }
 function showRecord() {
@@ -696,14 +1117,15 @@ function showRecord() {
   if (session.status === 'running') { startTicking(); lockScreen(); }
 }
 
+/* ---------- Frequency presses ---------- */
 function hit(i) {
   if (!session) return;
   if (session.status !== 'running') { toast('Press Start to begin recording'); return; }
-  const t = Date.now() - session.startEpoch;
-  if (session.durationMin && t >= session.durationMin * 60000) { finish(session.startEpoch + session.durationMin * 60000, true); return; }
+  const t = Date.now() - session.startEpoch, cap = capMs(session);
+  if (cap != null && t >= cap) { finish(session.startEpoch + cap, true); return; }
   session.events.push({ b: i, t });
   saveSession();
-  updateCounts();
+  updatePad();
   $('#lastEv').textContent = lastEventText();
   $('#undo').disabled = false;
   const el = $('#pad').children[i];
@@ -711,38 +1133,116 @@ function hit(i) {
   vibrate(15);
 }
 
+/* ---------- Duration presses ---------- */
+function startEp(i) {
+  if (!session || session.status !== 'running') { toast('Press Start to begin recording'); return; }
+  if (openEp(i)) return;
+  const t = Date.now() - session.startEpoch, cap = capMs(session);
+  if (cap != null && t >= cap) { finish(session.startEpoch + cap, true); return; }
+  session.episodes.push({ b: i, s: t, e: null });
+  saveSession();
+  updatePad();
+  $('#undo').disabled = false;
+  vibrate(12);
+}
+function endEp(i) {
+  if (!session || session.status !== 'running') return;
+  const x = openEp(i);
+  if (!x) return;
+  x.e = Math.max(x.s, Date.now() - session.startEpoch);
+  saveSession();
+  updatePad();
+  $('#lastEv').textContent = lastEventText();
+  vibrate(8);
+}
+function toggleEp(i) { if (openEp(i)) endEp(i); else startEp(i); }
+
+/* ---------- Interval presses ---------- */
+function markInterval(i) {
+  if (!session || session.status !== 'running') { toast('Press Start to begin recording'); return; }
+  const p = phaseAt(session, Date.now() - session.startEpoch);
+  if (p.phase !== 'record') { toast('Wait for the signal, then mark what you saw'); return; }
+  const arr = session.marks[p.k] || (session.marks[p.k] = []);
+  const at = arr.indexOf(i);
+  if (at >= 0) arr.splice(at, 1); else arr.push(i);
+  saveSession();
+  updatePad();
+  vibrate(15);
+}
+
+/* ---------- Pad events ---------- */
+function press(i, e, el) {
+  if (session.type === 'interval') { markInterval(i); return; }
+  if (session.type === 'duration') {
+    if (session.press === 'toggle') { toggleEp(i); return; }
+    if (session.status !== 'running') { toast('Press Start to begin recording'); return; }
+    holding.set(e.pointerId, i);
+    try { el.setPointerCapture(e.pointerId); } catch (_) {}
+    startEp(i);
+    return;
+  }
+  hit(i);
+}
+function release(e) {
+  if (!holding.has(e.pointerId)) return;
+  const i = holding.get(e.pointerId);
+  holding.delete(e.pointerId);
+  if (!Array.from(holding.values()).includes(i)) endEp(i);   // another finger may still be down
+}
 const pad = $('#pad');
 pad.addEventListener('pointerdown', (e) => {
   const b = e.target.closest('.padbtn');
-  if (!b) return;
+  if (!b || !session) return;
   e.preventDefault();
-  hit(+b.dataset.i);
+  ensureAudio();
+  press(+b.dataset.i, e, b);
 });
+pad.addEventListener('pointerup', release);
+pad.addEventListener('pointercancel', release);
+pad.addEventListener('lostpointercapture', release);
 // Keyboard activation (Enter/Space) arrives as a click with detail 0; pointer clicks are already handled above.
 pad.addEventListener('click', (e) => {
   const b = e.target.closest('.padbtn');
-  if (b && e.detail === 0) hit(+b.dataset.i);
+  if (!b || e.detail !== 0 || !session) return;
+  const i = +b.dataset.i;
+  if (session.type === 'interval') markInterval(i);
+  else if (session.type === 'duration') toggleEp(i);
+  else hit(i);
 });
 pad.addEventListener('contextmenu', (e) => e.preventDefault());
 document.addEventListener('keydown', (e) => {
   if ($('#record').hidden || !session || session.status !== 'running' || e.repeat) return;
   if (e.target && /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
-  if (/^[1-6]$/.test(e.key) && +e.key <= session.buttons.length) hit(+e.key - 1);
+  if (!/^[1-6]$/.test(e.key) || +e.key > session.buttons.length) return;
+  const i = +e.key - 1;
+  if (session.type === 'interval') markInterval(i);
+  else if (session.type === 'duration') toggleEp(i);
+  else hit(i);
 });
 
 $('#undo').addEventListener('click', () => {
-  if (!session || session.status !== 'running' || !session.events.length) return;
-  const e = session.events.pop();
+  if (!undoAvailable()) return;
+  if (session.type === 'duration') {
+    // remove the most recently started episode, whether finished or still running
+    let at = 0;
+    session.episodes.forEach((x, j) => { if (x.s >= session.episodes[at].s) at = j; });
+    const x = session.episodes.splice(at, 1)[0];
+    holding.forEach((b, id) => { if (b === x.b && !openEp(b)) holding.delete(id); });
+    toast('Removed ' + session.buttons[x.b].label + ' at ' + fmtClock(x.s));
+  } else {
+    const e = session.events.pop();
+    toast('Removed ' + session.buttons[e.b].label + ' at ' + fmtClock(e.t));
+  }
   saveSession();
-  updateCounts();
-  $('#undo').disabled = session.events.length === 0;
+  updatePad();
+  $('#undo').disabled = !undoAvailable();
   $('#lastEv').textContent = lastEventText();
-  toast('Removed ' + session.buttons[e.b].label + ' at ' + fmtClock(e.t));
 });
 
 $('#startStop').addEventListener('click', () => {
   if (!session) return;
   if (session.status === 'ready') {
+    ensureAudio();
     session.startEpoch = Date.now();
     session.status = 'running';
     saveSession();
@@ -762,11 +1262,15 @@ $('#backBtn').addEventListener('click', () => {
 function finish(atMs, auto) {
   clearInterval(timer);
   let end = atMs - session.startEpoch;
-  if (session.durationMin) end = Math.min(end, session.durationMin * 60000);
+  const cap = capMs(session);
+  if (cap != null) end = Math.min(end, cap);
   session.endMs = Math.max(0, Math.round(end));
+  session.episodes.forEach(x => { if (x.e == null) x.e = Math.max(x.s, session.endMs); });
+  holding.clear();
   session.status = 'finished';
   saveSession();
   unlockScreen();
+  setSignalScreen(false);
   if (auto) vibrate([200, 100, 200]);
   showResults();
 }
@@ -802,12 +1306,24 @@ async function copyText(f) {
   catch (_) { toast('Copy is not available here'); }
 }
 
-function renderExports() {
-  const base = fileBase(session);
-  const files = [
-    { title: 'Time-binned counts', name: base + '_binned.csv', text: binnedCsv(session) },
-    { title: 'Event log (every press, timestamped)', name: base + '_events.csv', text: eventsCsv(session) }
+function exportFiles(s) {
+  const base = fileBase(s);
+  if (s.type === 'duration') return [
+    { title: 'Time-binned duration (seconds, percent of bin, episodes)', name: base + '_duration_binned.csv', text: durationBinnedCsv(s) },
+    { title: 'Episode log (every hold, with start and end)', name: base + '_duration_episodes.csv', text: durationEpisodesCsv(s) }
   ];
+  if (s.type === 'interval') return [
+    { title: 'Interval scores (1 = occurred, 0 = did not)', name: base + '_interval_binned.csv', text: intervalBinnedCsv(s) },
+    { title: 'Summary (percent of intervals with behavior)', name: base + '_interval_summary.csv', text: intervalSummaryCsv(s) }
+  ];
+  return [
+    { title: 'Time-binned counts', name: base + '_binned.csv', text: binnedCsv(s) },
+    { title: 'Event log (every press, timestamped)', name: base + '_events.csv', text: eventsCsv(s) }
+  ];
+}
+
+function renderExports() {
+  const files = exportFiles(session);
   const share = canShareFiles();
   const box = $('#exports');
   box.textContent = '';
@@ -824,42 +1340,74 @@ function renderExports() {
   });
 }
 
+function totalRow(name, role, value, sub) {
+  const row = document.createElement('div'); row.className = 'trow';
+  const nm = document.createElement('span'); nm.className = 'tname'; nm.textContent = name;
+  if (role && role !== 'behavior') {
+    const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = ROLE_LABEL[role];
+    nm.appendChild(tag);
+  }
+  const v = document.createElement('span'); v.className = 'tval'; v.textContent = value;
+  if (sub) {
+    const r = document.createElement('span'); r.className = 'trate'; r.textContent = sub;
+    v.appendChild(r);
+  }
+  row.append(nm, v);
+  return row;
+}
+
 function showResults() {
   showScreen('results');
   const s = session;
   const who = [s.label, s.observer].filter(Boolean).join(' · ');
-  $('#resSummary').textContent = (who ? who + '\n' : '') + fmtClock(s.endMs) + ' observed · ' + s.binSec + '-second bins';
-
-  const c = counts(), mins = s.endMs / 60000;
   const tot = $('#totals'); tot.textContent = '';
-  s.buttons.forEach((b, i) => {
-    const row = document.createElement('div'); row.className = 'trow';
-    const nm = document.createElement('span'); nm.className = 'tname'; nm.textContent = b.label;
-    if (b.role !== 'behavior') {
-      const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = ROLE_LABEL[b.role];
-      nm.appendChild(tag);
-    }
-    const v = document.createElement('span'); v.className = 'tval'; v.textContent = c[i];
-    if (mins > 0) {
-      const r = document.createElement('span'); r.className = 'trate';
-      r.textContent = (c[i] / mins).toFixed(2) + ' / min';
-      v.appendChild(r);
-    }
-    row.append(nm, v);
-    tot.appendChild(row);
-  });
-
-  const bins = computeBins(s.events, s.buttons.length, s.binSec, s.endMs);
   const tbl = $('#binTable'); tbl.textContent = '';
+  const mins = s.endMs / 60000;
+  let head, bodyRows, summary;
+
+  if (s.type === 'duration') {
+    const eps = closeEpisodes(s.episodes, s.endMs);
+    summary = fmtClock(s.endMs) + ' observed · duration · ' + s.binSec + '-second bins';
+    s.buttons.forEach((b, i) => {
+      const mine = eps.filter(x => x.b === i);
+      const sum = mine.reduce((a, x) => a + (x.e - x.s), 0);
+      const pct = s.endMs > 0 ? sum / s.endMs * 100 : 0;
+      const mean = mine.length ? ' · mean ' + fmtDur(sum / mine.length) : '';
+      tot.appendChild(totalRow(b.label, b.role, fmtDur(sum),
+        mine.length + (mine.length === 1 ? ' episode' : ' episodes') + mean + ' · ' + pct.toFixed(1) + '% of session'));
+    });
+    head = ['Bin', 'Start (s)', 'End (s)'].concat(s.buttons.map(b => b.label + ' (s)'));
+    bodyRows = computeDurationBins(s.episodes, s.buttons.length, s.binSec, s.endMs)
+      .map(b => [b.index, secStr(b.startMs), secStr(b.endMs)].concat(b.durMs.map(secStr)));
+    $('#tableTitle').textContent = 'Seconds of behavior in each time bin';
+  } else if (s.type === 'interval') {
+    const rows = intervalRows(s), n = rows.length;
+    summary = n + ' intervals of ' + s.intervalSec + 's (' + s.recordSec + 's to record each)';
+    s.buttons.forEach((b, i) => {
+      const yes = rows.reduce((a, r) => a + r.values[i], 0);
+      tot.appendChild(totalRow(b.label, b.role, yes + ' of ' + n,
+        n > 0 ? (yes / n * 100).toFixed(1) + '% of intervals' : 'no complete intervals'));
+    });
+    head = ['Interval', 'Start (s)', 'End (s)'].concat(s.buttons.map(b => b.label));
+    bodyRows = rows.map(r => [r.index, secStr(r.startMs), secStr(r.endMs)].concat(r.values));
+    $('#tableTitle').textContent = 'Interval scores (1 = occurred)';
+  } else {
+    const c = counts();
+    summary = fmtClock(s.endMs) + ' observed · ' + s.binSec + '-second bins';
+    s.buttons.forEach((b, i) => {
+      tot.appendChild(totalRow(b.label, b.role, String(c[i]), mins > 0 ? (c[i] / mins).toFixed(2) + ' / min' : ''));
+    });
+    head = ['Bin', 'Start (s)', 'End (s)'].concat(s.buttons.map(b => b.label));
+    bodyRows = computeBins(s.events, s.buttons.length, s.binSec, s.endMs)
+      .map(b => [b.index, secStr(b.startMs), secStr(b.endMs)].concat(b.counts));
+    $('#tableTitle').textContent = 'Time bins';
+  }
+
+  $('#resSummary').textContent = (who ? who + '\n' : '') + summary;
   const thead = tbl.createTHead().insertRow();
-  ['Bin', 'Start (s)', 'End (s)'].concat(s.buttons.map(b => b.label)).forEach(h => {
-    const th = document.createElement('th'); th.textContent = h; thead.appendChild(th);
-  });
+  head.forEach(h => { const th = document.createElement('th'); th.textContent = h; thead.appendChild(th); });
   const tbody = tbl.createTBody();
-  bins.forEach(b => {
-    const r = tbody.insertRow();
-    [b.index, secStr(b.startMs), secStr(b.endMs)].concat(b.counts).forEach(x => { r.insertCell().textContent = x; });
-  });
+  bodyRows.forEach(r => { const tr = tbody.insertRow(); r.forEach(x => { tr.insertCell().textContent = x; }); });
 
   renderExports();
 }
@@ -883,10 +1431,13 @@ function init() {
   if (isValidSession(saved)) {
     session = saved;
     if (session.status === 'running') {
-      const el = Date.now() - session.startEpoch;
-      if (session.durationMin && el >= session.durationMin * 60000) {
-        finish(session.startEpoch + session.durationMin * 60000, false);
+      const el = Date.now() - session.startEpoch, cap = capMs(session);
+      if (cap != null && el >= cap) {
+        finish(session.startEpoch + cap, false);
       } else {
+        // a finger can't still be down after a reload, so close any open holds now
+        session.episodes.forEach(x => { if (x.e == null) x.e = Math.max(x.s, el); });
+        saveSession();
         showRecord();
       }
       return;
